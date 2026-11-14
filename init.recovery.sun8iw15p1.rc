@@ -1,0 +1,38 @@
+on early-init
+    write /sys/class/backlight/lm3630a_led/brightness 0
+
+on init
+    # Load display, touch, and input modules early so /dev/graphics/fb0 and /dev/disp exist before recovery starts
+    insmod /disp.ko
+    insmod /mali.ko
+    insmod /gt82x.ko
+    insmod /wacom_i2c.ko
+    insmod /sunxi-keyboard.ko
+
+    # Power on E-Ink PMIC before minuitwrp initializes
+    write /sys/devices/virtual/disp/disp/waveform/epd_pmic_power 1
+
+    # Create static partition links before recovery attempts BCB / cache access
+    mkdir /dev/block/by-name 0755 root root
+    symlink /dev/block/mmcblk0p1 /dev/block/by-name/UDISK
+    symlink /dev/block/mmcblk0p2 /dev/block/by-name/bootloader
+    symlink /dev/block/mmcblk0p3 /dev/block/by-name/env
+    symlink /dev/block/mmcblk0p4 /dev/block/by-name/boot
+    symlink /dev/block/mmcblk0p5 /dev/block/by-name/system
+    symlink /dev/block/mmcblk0p6 /dev/block/by-name/vendor
+    symlink /dev/block/mmcblk0p7 /dev/block/by-name/misc
+    symlink /dev/block/mmcblk0p8 /dev/block/by-name/recovery
+    symlink /dev/block/mmcblk0p9 /dev/block/by-name/cache
+    symlink /dev/block/mmcblk0p10 /dev/block/by-name/metadata
+    symlink /dev/block/mmcblk0p11 /dev/block/by-name/private
+    symlink /dev/block/mmcblk0p12 /dev/block/by-name/frp
+    symlink /dev/block/mmcblk0p13 /dev/block/by-name/empty
+    symlink /dev/block/mmcblk0p14 /dev/block/by-name/dto
+    symlink /dev/block/mmcblk0p15 /dev/block/by-name/media_data
+
+    # Android bootdevice fallback symlink
+    mkdir /dev/block/bootdevice 0755 root root
+    symlink /dev/block/by-name /dev/block/bootdevice/by-name
+
+on boot
+    write /sys/class/backlight/lm3630a_led/brightness 20

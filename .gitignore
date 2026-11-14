@@ -1,0 +1,13 @@
+*.bak
+*.orig
+*.swp
+*~
+.DS_Store
+*.log
+*.zip
+*.tar
+*.win*
+recovery.img
+system.img
+vendor.img
+boot.img
