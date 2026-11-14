@@ -2,12 +2,22 @@
 
 Developer guide for building, flashing, and verifying Team Win Recovery Project (TWRP) with working `.tar` and raw partition backups/restores on the Barnes & Noble Nook Glowlight 4 Plus (`E70P74_android`, Allwinner `sun8iw15p1`, board codename `emperor`).
 
-> **Important Notes:**
+> **Important note:**
 > The stock bootloader accepts `fastboot boot recovery.img` and reports `OKAY`, **but it does not actually boot the image**. Temporary ramdisk booting via `fastboot boot` is non-functional on this device—you must flash the recovery image directly to the `recovery` partition (`fastboot flash recovery ...` or `dd`).
-> The TWRP currently builds **only** using JDK version 1.8.x 
+
+* **Python 2.7 (Bundled in Source Tree):** Legacy Android/OmniROM build tools (`roomservice.py`, `check_radio_versions.py`) require Python 2 syntax. No host Python 2 installation is required—even on modern Linux distributions where `python` maps to Python 3 (`python-is-python3`), the TWRP source tree includes a prebuilt binary at `prebuilts/python/linux-x86/2.7.5/bin`.
+* **Java 8 (Host Required):** OpenJDK 8 is not bundled in `prebuilts/` for this manifest and must be installed on the host (configured via `JAVA_HOME` in `env.sh`, defaulting to `$HOME/jdk8u402-b06`).
+* **Locale:** `LC_ALL=C` is required to prevent collation/sorting issues in legacy host tools. 
 
 ## Acknowledgments
 Special thanks to **[Ryogo-X/nook_gentoo_twrp](https://github.com/Ryogo-X/nook_gentoo_twrp)** for the foundational reverse-engineering, kernel/module bring-up, and initial TWRP device tree work on this platform that made this build possible.
+
+### Quick Rebuild Steps
+From the root of the synced TWRP source tree:
+1. `git clone https://github.com/bioyazerg/android_device_barnesandnoble_E70P74_android.git device/barnesandnoble/E70P74_android`
+2. `git -C bootable/recovery apply ../../device/barnesandnoble/E70P74_android/bootable_recovery.patch`
+3. `source device/barnesandnoble/E70P74_android/env.sh`
+4. `mka recoveryimage`
 
 ---
 
