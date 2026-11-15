@@ -29,7 +29,7 @@ Place or clone this device tree at `device/barnesandnoble/E70P74_android` inside
   - `Android.mk`, `AndroidProducts.mk`, `omni_E70P74_android.mk`, `device.mk`, `vendorsetup.sh`
   - `BoardConfig.mk` — Partition sizes, kernel/DTB parameters, `make_ext4fs` / `mkfs.f2fs` flags, and recovery ramdisk preparation hooks.
   - `recovery.fstab` — Partition mountpoints, block device mappings (`/dev/block/by-name/*`), and backup/flash flags.
-- **Prebuilt Kernel & Device Tree:**
+- **Prebuilt kernel & Device Tree:**
   - `zImage` / `kernel` / `prebuilt/kernel` and `dt.img`
 - **Kernel modules (`modules/`):**
   - `disp.ko`, `gt82x.ko`, `mali.ko`, `sunxi-keyboard.ko`, `wacom_i2c.ko` (see Section 2)
