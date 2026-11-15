@@ -186,17 +186,3 @@ Expected output:
 - **`/data` labels:** `/data` & `/data/system` -> `u:object_r:system_data_file:s0`, `/data/app` -> `u:object_r:apk_data_file:s0`, `/data/media` & `/data/media/0` -> `u:object_r:media_rw_data_file:s0`
 - **Superblock flags:** `00000100 0000001c 00000042 00000013` on both `/dev/block/by-name/vendor` and `/dev/block/by-name/system`
 
----
-
-## 7. Stock Firmware vs. Custom ROM Compatibility (B&N Ecosystem)
-
-For users who rely on the Barnes & Noble bookstore and ecosystem, the impact depends on whether they keep the stock OS alongside TWRP or replace `/system` with a custom ROM:
-
-- **TWRP + Stock Firmware (Unrooted or Magisk-Rooted) — Fully Compatible:**
-  - All proprietary B&N services, hardware serial/certificate bindings, Adobe/B&N DRM, and E-Ink waveform drivers remain intact in `/system`, `/vendor`, and the factory `private` partition.
-  - Because this TWRP build preserves `ext4`/`f2fs` metadata and SELinux contexts across `/system`, `/vendor`, and `/data`, restoring a backup preserves B&N account login state and downloaded books without re-registration errors.
-  - **OTA Caveat:** Official Barnes & Noble OTA updates will either fail block verification (if `/system` or `/vendor` was modified) or overwrite TWRP with stock recovery. Disable automatic system updates in Developer Options when running TWRP.
-- **Full Custom ROM (Replacing Stock `/system`) — Trade-Offs for B&N Users:**
-  - **Loss of OEM E-Ink & Frontlight Hooks:** The stock Nook reader uses proprietary framework hooks for Allwinner EPD waveform modes (Regal refresh, anti-ghosting) and dual warm/cool frontlight control. Sideloading the Play Store Nook APK onto generic AOSP falls back to an LCD-oriented UI with heavier ghosting.
-  - **Hardware Page-Turn Buttons:** Physical page-turn keycodes (`191`–`194`) are wired directly into the OEM reader on stock firmware and do nothing in the Play Store Nook APK unless manually remapped to `VOLUME_UP` / `VOLUME_DOWN` in `.kl` keylayout files.
-  - **Authentication & Play Services:** The OEM Nook app authenticates via stock `ro.product.*` fingerprints and hardware serials without Google Play Services; on a custom ROM, users must use the Play Store Nook APK, which requires Google Play Services (or microG) and an updated Android System WebView for OAuth login.
