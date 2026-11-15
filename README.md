@@ -12,7 +12,7 @@ Developer guide for building, flashing, and verifying Team Win Recovery Project 
 ## Acknowledgments
 Special thanks to **[Ryogo-X/nook_gentoo_twrp](https://github.com/Ryogo-X/nook_gentoo_twrp)** for the foundational reverse-engineering, kernel/module bring-up, and initial TWRP device tree work on this platform that made this build possible.
 
-### Quick Rebuild Steps
+### Quick rebuild steps
 From the root of the synced TWRP source tree:
 1. `git clone https://github.com/bioyazerg/android_device_barnesandnoble_E70P74_android.git device/barnesandnoble/E70P74_android`
 2. `git -C bootable/recovery apply ../../device/barnesandnoble/E70P74_android/bootable_recovery.patch`
@@ -25,30 +25,30 @@ From the root of the synced TWRP source tree:
 
 Place or clone this device tree at `device/barnesandnoble/E70P74_android` inside an OmniROM / TWRP 8.1-based build tree:
 
-- **Build & Product Makefiles:**
+- **Build & Product makefiles:**
   - `Android.mk`, `AndroidProducts.mk`, `omni_E70P74_android.mk`, `device.mk`, `vendorsetup.sh`
   - `BoardConfig.mk` — Partition sizes, kernel/DTB parameters, `make_ext4fs` / `mkfs.f2fs` flags, and recovery ramdisk preparation hooks.
   - `recovery.fstab` — Partition mountpoints, block device mappings (`/dev/block/by-name/*`), and backup/flash flags.
 - **Prebuilt Kernel & Device Tree:**
   - `zImage` / `kernel` / `prebuilt/kernel` and `dt.img`
-- **Kernel Modules (`modules/`):**
+- **Kernel modules (`modules/`):**
   - `disp.ko`, `gt82x.ko`, `mali.ko`, `sunxi-keyboard.ko`, `wacom_i2c.ko` (see Section 2)
-- **Recovery Init & Ramdisk Overlay (`recovery/root/`):**
+- **Recovery init & ramdisk overlay (`recovery/root/`):**
   - `init.rc`, `init.recovery.sun8iw15p1.rc`, `init.recovery.usb.rc`
   - `ueventd.rc`, `ueventd.sun8iw15p1.rc`
   - `proof_of_life.sh`
-- **SELinux Policy & File Contexts (`sepolicy/`):**
+- **SELinux policy & file contexts (`sepolicy/`):**
   - `sepolicy`, `plat_file_contexts`, `nonplat_file_contexts`, `file_contexts.bin`
-- **Custom Portrait UI Theme (`theme/`):**
+- **Custom portrait UI theme (`theme/`):**
   - `portrait.xml`, `splash.xml`, `ui.xml`, and `images/`
 
 ---
 
-## 2. Kernel Modules (`modules/`)
+## 2. Kernel modules (`modules/`)
 
 Allwinner `sun8iw15p1` hardware support in recovery relies on five prebuilt kernel modules located in `device/barnesandnoble/E70P74_android/modules/` (and copied into the recovery ramdisk root `/` during build, where `init.recovery.sun8iw15p1.rc` loads them via `insmod`):
 
-| Module | Hardware Component | Role in Recovery |
+| Module | Hardware component | Role in recovery |
 | :--- | :--- | :--- |
 | `disp.ko` | Allwinner Display Engine | Initializes framebuffer / panel output for the TWRP GUI |
 | `gt82x.ko` | Goodix Capacitive Touchscreen | Enables finger touch input in TWRP |
@@ -58,11 +58,11 @@ Allwinner `sun8iw15p1` hardware support in recovery relies on five prebuilt kern
 
 ---
 
-## 3. Key Configuration Design (`BoardConfig.mk` & `recovery.fstab`)
+## 3. Key configuration design (`BoardConfig.mk` & `recovery.fstab`)
 
 To ensure file-based `.tar` backups restore into a bootable Android system under SELinux enforcing mode and match stock bootloader expectations, the device tree uses the following configuration:
 
-### A. Partition Table (`recovery.fstab`)
+### A. Partition table (`recovery.fstab`)
 `backup=1` is enabled **only** on the file-based `ext4` entries (`/system`, `/vendor`) so TWRP does not create duplicate/conflicting raw `.emmc.win` and `.ext4.win` archives during backup or restore. Raw block entries (`/system_image`, `/vendor_image`) retain `flashimg=1` so raw `.img` files can still be flashed from the TWRP UI.
 
 ```fstab
@@ -78,10 +78,10 @@ To ensure file-based `.tar` backups restore into a bootable Android system under
 /usb_otg        auto    /dev/block/sda1 /dev/block/sda flags=storage;wipeingui;removable
 ```
 
-### B. `make_ext4fs` & Superblock Feature Parity (`BoardConfig.mk`)
+### B. `make_ext4fs` & superblock feature parity (`BoardConfig.mk`)
 `TARGET_USERIMAGES_USE_EXT4 := true` compiles `/sbin/make_ext4fs` into the recovery ramdisk so TWRP formats `/system` and `/vendor` with `make_ext4fs` rather than plain `mke2fs`. This preserves the stock `ext4` superblock feature bitmasks (`00000100 0000001c 00000042 00000013` at byte offset `1024 + 88`) and applies SELinux labels to partition root inodes during format.
 
-### C. Text `file_contexts` Resolution (`BoardConfig.mk`)
+### C. Text `file_contexts` resolution (`BoardConfig.mk`)
 `BOARD_RECOVERY_IMAGE_PREPARE` removes `file_contexts.bin` from `$(TARGET_RECOVERY_ROOT_OUT)` before packing the recovery ramdisk. This forces `libselinux` to resolve contexts from text `/file_contexts` (`/system(/.*)? -> u:object_r:system_file:s0`) so `/system` is labeled `u:object_r:system_file:s0` rather than `u:object_r:rootfs:s0`.
 
 ```makefile
@@ -95,7 +95,7 @@ BOARD_RECOVERY_IMAGE_PREPARE += \
 
 ---
 
-## 4. Building from Source
+## 4. Building from source
 
 From the root of your TWRP build tree:
 
@@ -109,7 +109,7 @@ mka recoveryimage
 The resulting recovery image is written to:
 `out/target/product/E70P74_android/recovery.img`
 
-### Verify Compiled Ramdisk Contents Before Flashing
+### Verify compiled ramdisk contents before flashing
 Confirm that `make_ext4fs`, `mkfs.f2fs`, `fsck.f2fs`, and the kernel modules are present in the recovery ramdisk, `make_ext4fs` is linked into TWRP, and `file_contexts.bin` was stripped from the recovery root:
 
 ```bash
@@ -130,7 +130,7 @@ strings out/target/product/E70P74_android/recovery/root/sbin/recovery \
 
 *(Reminder: Always use `flash`, not `fastboot boot`.)*
 
-### Option A: Via Fastboot (Bootloader Mode)
+### Option A: From fastboot (bootloader mode)
 Enter bootloader mode (`adb reboot bootloader` or hardware key combo) and flash directly to the `recovery` partition:
 ```bash
 fastboot flash recovery out/target/product/E70P74_android/recovery.img
@@ -138,14 +138,14 @@ fastboot reboot
 ```
 *(Or `fastboot flash recovery twrp.img` if you renamed the output image.)*
 
-### Option B: From Rooted Android via `adb`
+### Option B: From rooted Android using `adb`
 ```bash
 adb push out/target/product/E70P74_android/recovery.img /sdcard/recovery.img
 adb shell "su -c 'dd if=/sdcard/recovery.img of=/dev/block/by-name/recovery bs=4096 && sync'"
 adb reboot recovery
 ```
 
-### Option C: From Existing TWRP
+### Option C: From existing TWRP
 ```bash
 adb push out/target/product/E70P74_android/recovery.img /tmp/recovery.img
 adb shell "dd if=/tmp/recovery.img of=/dev/block/by-name/recovery bs=4096 && sync"
@@ -154,7 +154,7 @@ adb reboot recovery
 
 ---
 
-## 6. Backup & Restore Verification Guide
+## 6. Backup & Restore verification guide
 
 ### Verified Working Partitions
 - **`boot` (`emmc`):** Raw partition backup (`boot.emmc.win`) and restore verified bit-identical against `/dev/block/by-name/boot`.
